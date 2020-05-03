@@ -3,19 +3,26 @@
 
   "name": "Classes Extension",
   "description": "For querying class timeslots from UCLA's Schedule of Classes page.",
-  "version": "0.0.1",
-
-  "browser_action": {
-    "default_popup": "index.html",
-    "default_title": "Open the popup"
-  },
+  "version": "0.0.2",
   "icons": {
     "16": "logo-small.png",
     "48": "logo-small.png",
     "128": "logo-small.png"
   },
+  "browser_action": {
+    "default_popup": "index.html",
+    "default_title": "Open the popup"
+  },
+  "content_scripts": [{
+    "js": ["content.js"],
+    "matches": ["<all_urls>"]
+  }],
+  "background": {
+    "scripts": ["background.js"]
+  },
   "content_security_policy": "script-src 'self' 'sha256-ELkDE2InNI702G86lymxXYBdrcJq5bMn8+PhTgN6cks='; object-src 'self'", 
   "permissions": [
-
-  ]
+    "tabs"
+  ],
+  "web_accessible_resources": ["*.html"]
 }
