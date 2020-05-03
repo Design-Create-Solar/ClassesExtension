@@ -30,44 +30,37 @@ const puppeteer = require("puppeteer");
   //expand all classes
   await page.focus("#divExpandAll > a");
   await page.keyboard.press("Enter");
-  await page.waitFor(5000);
+  await page.waitFor(5000); //need to replace with smarter check
 
   await page.screenshot({ path: "test.png", fullPage: true });
 
-  // let times = await page.evaluate(() => {
-  //   let data = [];
-  //   let elements = document.querySelectorAll("div.timeColumn > p");
-  //   console.log(elements);
-  //   for (var element of elements) data.push(element.textContent);
-  //   return data;
-  // });
-  // console.log(times);
-
+  //create JSONs
   let titles = await page.evaluate(() => {
-    let data = [];
+    let classes = [];
     let elements = document.querySelectorAll("div.class-title");
     for (var element of elements) {
+      let obj = {};
       if (element != null) {
-        data.push(element.querySelector("h3").textContent);
-        data.push(
-          element
-            .querySelector("div.primary-row")
-            .querySelector("div.timeColumn > p").textContent
-        );
+        obj.title = element.querySelector("h3").textContent;
+        obj.time = element
+          .querySelector("div.primary-row")
+          .querySelector("div.timeColumn > p").textContent;
 
         let secondarySection = element.querySelector("div.secondarySection");
         if (secondarySection != null) {
           let secondaryTimeElements = secondarySection.querySelectorAll(
             "div.timeColumn > p"
           );
+          let discussions = [];
           for (var element of secondaryTimeElements) {
-            data.push(element.textContent);
+            discussions.push(element.textContent);
           }
+          obj.discussions = discussions;
         }
       }
+      classes.push(obj);
     }
-
-    return data;
+    return classes;
   });
 
   console.log(titles);
