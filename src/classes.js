@@ -1,36 +1,39 @@
 const puppeteer = require("puppeteer");
 
-//I dont know how to use this inside the evaluate function
-function getPrimaryInfo(obj, element) {
-  obj.title = element.querySelector("h3").textContent;
-  obj.spots = element
-    .querySelector("div.primary-row")
-    .querySelector("div.statusColumn > p")
-    .innerHTML.split("<br>")[1];
-  obj.waitlist = element
-    .querySelector("div.primary-row")
-    .querySelector("div.waitlistColumn > p").textContent;
-  obj.days = element
-    .querySelector("div.primary-row")
-    .querySelector("div.dayColumn a").textContent;
-  obj.time = element
-    .querySelector("div.primary-row")
-    .querySelector("div.timeColumn > p").textContent;
-  obj.location = element
-    .querySelector("div.primary-row")
-    .querySelector("div.locationColumn > p")
-    .textContent.trim()
-    .replace("\n", "");
-  obj.units = element
-    .querySelector("div.primary-row")
-    .querySelector("div.unitsColumn > p").textContent;
-  //classes with multiple instructors will return 2 names without a space in between the names
-  obj.instructor = element
-    .querySelector("div.primary-row")
-    .querySelector("div.instructorColumn > p").textContent;
+//grabs JSON of class description and slots given the link to the detail page
+//remember, this function must complete its task before returning something
+//attempting to call it without await will result in no return value
+async function getDescSlots(link) {
+  const browser = await puppeteer.launch({
+    executablePath: "/usr/bin/chromium-browser",
+    args: [
+      "--disable-gpu",
+      "--disable-dev-shm-usage",
+      "--disable-setuid-sandbox",
+      "--no-first-run",
+      "--no-sandbox",
+      "--no-zygote",
+      "--single-process",
+    ],
+  });
+  const page = await browser.newPage();
+  await page.goto(link, {
+    waitUntil: "networkidle2",
+  });
+  const json = await page.evaluate(() => {
+    let obj = {}
+    obj.description = document.querySelector("div#section p.section_data").textContent
+    obj.slots = document.querySelector("div#pagewrap div#class_detail").querySelector("div#enrl_mtng_info div.data-row").querySelector("div.span1 > p").textContent
+    return obj
+  })
+
+  await browser.close();
+  return json;
 }
 
-(async () => {
+//returns title, spots, waitlist, days, time, location, units, instructor, class detail link
+//for each class in the given subject
+async function getClassDetails(subject) {
   const browser = await puppeteer.launch({
     executablePath: "/usr/bin/chromium-browser",
     args: [
@@ -49,7 +52,7 @@ function getPrimaryInfo(obj, element) {
     waitUntil: "networkidle2",
   });
   await page.click("#select_filter_subject", { clickCount: 3 });
-  await page.type("#select_filter_subject", "computer science");
+  await page.type("#select_filter_subject", subject); //search term here
 
   await page.waitFor(300);
   await page.keyboard.press("Enter");
@@ -91,6 +94,9 @@ function getPrimaryInfo(obj, element) {
           obj.instructor = lecture.querySelector(
             "div.instructorColumn > p"
           ).textContent;
+          obj.detail = lecture.querySelector(
+            "div.sectionColumn a"
+          ).href
           //discussions
           let secondarySection = element.querySelector("div.secondarySection");
           if (secondarySection != null) {
@@ -110,7 +116,7 @@ function getPrimaryInfo(obj, element) {
     return classes;
   });
 
-  console.log(titles);
-  console.log("Success!");
   await browser.close();
-})();
+  return titles;
+}
+
