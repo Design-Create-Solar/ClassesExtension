@@ -136,15 +136,19 @@ async function getClassDetailsIter(number) {
     waitUntil: "networkidle2",
   });
   await page.click("#select_filter_subject");
-  await page.waitFor(200)
-  for (var i = 0; i < number; i++) {
+  await page.waitFor(1000)
+
+  let i = 0;
+  while (i < number) {
     await page.keyboard.press("ArrowDown");
-    page.waitFor(100)
+    await page.waitFor(150)
+    i++;
   }
+
 
   await page.waitFor(300);
   await page.keyboard.press("Enter");
-  await page.waitFor(300);
+  await page.waitFor(100);
   await Promise.all([page.waitForNavigation(), page.keyboard.press("Enter")]);
   //now on results page
   await page.waitForSelector("#divExpandAll");
