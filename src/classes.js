@@ -118,6 +118,7 @@ async function getClassDetails(subject) {
 }
 
 //gets the class details for the subject (number) items down the list of subjects
+//attempting to loop with this function does not always guarantee maintenance of order
 async function getClassDetailsIter(number) {
   const browser = await puppeteer.launch({
     executablePath: "/usr/bin/chromium-browser",
@@ -139,7 +140,7 @@ async function getClassDetailsIter(number) {
   await page.waitFor(1000)
 
   let i = 0;
-  while (i < number) {
+  while (i < number + 1) {
     await page.keyboard.press("ArrowDown");
     await page.waitFor(150)
     i++;
@@ -148,8 +149,19 @@ async function getClassDetailsIter(number) {
 
   await page.waitFor(300);
   await page.keyboard.press("Enter");
-  await page.waitFor(100);
-  await Promise.all([page.waitForNavigation(), page.keyboard.press("Enter")]);
+  await page.waitFor(200);
+  await page.keyboard.press("Enter")
+
+  let isNull = false;
+  await page.waitForNavigation({ timeout: 10000 }).catch(() => {
+    isNull = true;
+  });
+
+  if (isNull == true) {
+    await browser.close();
+    return [{}]
+  }
+
   //now on results page
   await page.waitForSelector("#divExpandAll");
   //expand all classes
@@ -232,7 +244,7 @@ async function getClassDetailsIter(number) {
   });
 
   await browser.close();
-  return titles;
+  return titles
 }
 
 exports.getDescSlots = getDescSlots;
