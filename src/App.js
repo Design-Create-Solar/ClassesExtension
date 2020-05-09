@@ -38,6 +38,10 @@ class App extends Component {
         {
           correctSite ? <h1>Whoo</h1> : <h1>Go to your UCLA class planner.</h1>
         }
+        <form>
+          <input type="text" placeholder="Enter a Subject" required />
+          <button type="submit">Go!</button>
+        </form>
       </div>
     )
   }
