@@ -1,4 +1,5 @@
 const puppeteer = require("puppeteer");
+const moment = require("moment");
 
 //grabs JSON of class description and slots given the link to the detail page
 //remember, this function must complete its task before returning something
@@ -21,11 +22,16 @@ async function getDescSlots(link) {
     waitUntil: "networkidle2",
   });
   const json = await page.evaluate(() => {
-    let obj = {}
-    obj.description = document.querySelector("div#section p.section_data").textContent
-    obj.slots = document.querySelector("div#pagewrap div#class_detail").querySelector("div#enrl_mtng_info div.data-row").querySelector("div.span1 > p").textContent
-    return obj
-  })
+    let obj = {};
+    obj.description = document.querySelector(
+      "div#section p.section_data"
+    ).textContent;
+    obj.slots = document
+      .querySelector("div#pagewrap div#class_detail")
+      .querySelector("div#enrl_mtng_info div.data-row")
+      .querySelector("div.span1 > p").textContent;
+    return obj;
+  });
 
   await browser.close();
   return json;
@@ -91,9 +97,7 @@ async function getClassDetails(subject) {
           obj.instructor = lecture.querySelector(
             "div.instructorColumn > p"
           ).textContent;
-          obj.detail = lecture.querySelector(
-            "div.sectionColumn a"
-          ).href
+          obj.detail = lecture.querySelector("div.sectionColumn a").href;
           //discussions
           let secondarySection = element.querySelector("div.secondarySection");
           if (secondarySection != null) {
@@ -114,6 +118,70 @@ async function getClassDetails(subject) {
   });
 
   await browser.close();
+  //loop through titles processing the times
+  for (let i = 0; i < titles.length; i++) {
+    if (titles[i].time == "" || titles[i].time.match(/\d+/) == null) {
+      continue;
+    }
+    time = titles[i].time.split("-");
+
+    timeStrings = [];
+    for (let j = 0; j < time.length; j++) {
+      if (time[j].includes(":")) {
+        minutes = time[j].match(/\d+/g)[1];
+      } else {
+        minutes = "00";
+      }
+      hour = time[j].match(/\d+/)[0];
+      //the 10 just means base 10
+      int = parseInt(hour, 10);
+      if (time[j].includes("pm")) {
+        if (int + 12 < 24) {
+          int += 12;
+        }
+      }
+      timeStrings.push(int.toString() + minutes.toString());
+    }
+    titles[i].time =
+      moment(timeStrings[0], "hmm").format("HH:mm") +
+      "-" +
+      moment(timeStrings[1], "hmm").format("HH:mm");
+
+    //if there are discussions:
+    if (titles[i].discussions != null) {
+      for (let d = 0; d < titles[i].discussions.length; d++) {
+        if (
+          titles[i].discussions[d].match(/\d+/) == null ||
+          titles[i].discussions[d] == ""
+        ) {
+          continue;
+        }
+        time = titles[i].discussions[d].split("-");
+
+        timeStrings = [];
+        for (let j = 0; j < time.length; j++) {
+          if (time[j].includes(":")) {
+            minutes = time[j].match(/\d+/g)[1];
+          } else {
+            minutes = "00";
+          }
+          hour = time[j].match(/\d+/)[0];
+          //the 10 just means base 10
+          int = parseInt(hour, 10);
+          if (time[j].includes("pm")) {
+            if (int + 12 < 24) {
+              int += 12;
+            }
+          }
+          timeStrings.push(int.toString() + minutes.toString());
+        }
+        titles[i].discussions[d] =
+          moment(timeStrings[0], "hmm").format("HH:mm") +
+          "-" +
+          moment(timeStrings[1], "hmm").format("HH:mm");
+      }
+    }
+  }
   return titles;
 }
 
@@ -137,20 +205,19 @@ async function getClassDetailsIter(number) {
     waitUntil: "networkidle2",
   });
   await page.click("#select_filter_subject");
-  await page.waitFor(1000)
+  await page.waitFor(1000);
 
   let i = 0;
   while (i < number + 1) {
     await page.keyboard.press("ArrowDown");
-    await page.waitFor(150)
+    await page.waitFor(150);
     i++;
   }
-
 
   await page.waitFor(300);
   await page.keyboard.press("Enter");
   await page.waitFor(200);
-  await page.keyboard.press("Enter")
+  await page.keyboard.press("Enter");
 
   let isNull = false;
   await page.waitForNavigation({ timeout: 10000 }).catch(() => {
@@ -159,19 +226,19 @@ async function getClassDetailsIter(number) {
 
   if (isNull == true) {
     await browser.close();
-    return [{}]
+    return [{}];
   }
 
   //now on results page
   await page.waitForSelector("#divExpandAll");
   //expand all classes
   await page.focus("#divExpandAll > a");
-  await page.waitFor(500)
+  await page.waitFor(500);
   await page.keyboard.press("Enter");
   await page.waitFor(5000); //need to replace with smarter check
 
   //create JSONs
-  let titles = await page.evaluate(() => {
+  let titles = await page.evaluate(async () => {
     let classes = []; //array of JSONs
     let elements = document.querySelectorAll("div.class-title");
     for (var element of elements) {
@@ -179,23 +246,16 @@ async function getClassDetailsIter(number) {
         let lectures = element.querySelectorAll("div.primary-row");
         for (var lecture of lectures) {
           let obj = {};
-          let title = element.querySelector("h3")
-          let spots = lecture
-            .querySelector("div.statusColumn > p");
-          let waitlist = lecture.querySelector(
-            "div.waitlistColumn > p");
+          let title = element.querySelector("h3");
+          let spots = lecture.querySelector("div.statusColumn > p");
+          let waitlist = lecture.querySelector("div.waitlistColumn > p");
           let days = lecture.querySelector("div.dayColumn a");
           let time = lecture.querySelector("div.timeColumn > p");
-          let location = lecture
-            .querySelector("div.locationColumn > p");
+          let location = lecture.querySelector("div.locationColumn > p");
           let units = lecture.querySelector("div.unitsColumn > p");
           //classes with multiple instructors will return 2 names without a space in between the names
-          let instructor = lecture.querySelector(
-            "div.instructorColumn > p"
-          );
-          let detail = lecture.querySelector(
-            "div.sectionColumn a"
-          )
+          let instructor = lecture.querySelector("div.instructorColumn > p");
+          let detail = lecture.querySelector("div.sectionColumn a");
           if (title != null) {
             obj.title = title.textContent;
           }
@@ -212,8 +272,7 @@ async function getClassDetailsIter(number) {
             obj.time = time.textContent;
           }
           if (location != null) {
-            obj.location = location.textContent.trim()
-              .replace("\n", "");
+            obj.location = location.textContent.trim().replace("\n", "");
           }
           if (units != null) {
             obj.units = units.textContent;
@@ -244,7 +303,72 @@ async function getClassDetailsIter(number) {
   });
 
   await browser.close();
-  return titles
+
+  //loop through titles processing the times
+  for (let i = 0; i < titles.length; i++) {
+    if (titles[i].time == "" || titles[i].time.match(/\d+/) == null) {
+      continue;
+    }
+    time = titles[i].time.split("-");
+
+    timeStrings = [];
+    for (let j = 0; j < time.length; j++) {
+      if (time[j].includes(":")) {
+        minutes = time[j].match(/\d+/g)[1];
+      } else {
+        minutes = "00";
+      }
+      hour = time[j].match(/\d+/)[0];
+      //the 10 just means base 10
+      int = parseInt(hour, 10);
+      if (time[j].includes("pm")) {
+        if (int + 12 < 24) {
+          int += 12;
+        }
+      }
+      timeStrings.push(int.toString() + minutes.toString());
+    }
+    titles[i].time =
+      moment(timeStrings[0], "hmm").format("HH:mm") +
+      "-" +
+      moment(timeStrings[1], "hmm").format("HH:mm");
+
+    //if there are discussions:
+    if (titles[i].discussions != null) {
+      for (let d = 0; d < titles[i].discussions.length; d++) {
+        if (
+          titles[i].discussions[d].match(/\d+/) == null ||
+          titles[i].discussions[d] == ""
+        ) {
+          continue;
+        }
+        time = titles[i].discussions[d].split("-");
+
+        timeStrings = [];
+        for (let j = 0; j < time.length; j++) {
+          if (time[j].includes(":")) {
+            minutes = time[j].match(/\d+/g)[1];
+          } else {
+            minutes = "00";
+          }
+          hour = time[j].match(/\d+/)[0];
+          //the 10 just means base 10
+          int = parseInt(hour, 10);
+          if (time[j].includes("pm")) {
+            if (int + 12 < 24) {
+              int += 12;
+            }
+          }
+          timeStrings.push(int.toString() + minutes.toString());
+        }
+        titles[i].discussions[d] =
+          moment(timeStrings[0], "hmm").format("HH:mm") +
+          "-" +
+          moment(timeStrings[1], "hmm").format("HH:mm");
+      }
+    }
+  }
+  return titles;
 }
 
 exports.getDescSlots = getDescSlots;
