@@ -1,15 +1,14 @@
 /* global chrome */
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
-// import axios from "axios"
 
 class App extends Component {
   constructor(props) {
     super(props)
 
     this.state = {
-      site: ''
+      site: '',
+      existingClasses: [],
     }
   }
 
@@ -17,12 +16,23 @@ class App extends Component {
     chrome.tabs.query({ active: true, currentWindow: true },
     tabs => {
       const url = new URL(tabs[0].url)
-      console.log(url)
       const site = url.href
       this.setState({
         site: site
       })
-    })
+      chrome.tabs.sendMessage( 
+        tabs[0].id, 
+        {from: "popup", subject: "DOMInfo"}, 
+        res => {
+          // this.setState({ existingClasses: res }) 
+          // think we need to go up one more level in order to setstate
+          // because only console logs in popup's inspection
+          console.log(res)
+          console.log("came in here")
+        }
+      )
+    })  
+    // console.log(this.state.existingClasses)
   }
 
   render() {
@@ -31,41 +41,21 @@ class App extends Component {
     if (this.state.site=="https://be.my.ucla.edu/ClassPlanner/ClassPlan.aspx") 
       correctSite = true
     else 
-      correctSite=false
+      correctSite = false
 
     return (
       <div className="App">
         {
-          correctSite ? <h1>Whoo</h1> : <h1>Go to your UCLA class planner.</h1>
+          correctSite
+          ? <form>
+              <input type="text" placeholder="Enter a Subject" required />
+              <button type="submit">Go!</button>
+            </form>
+          : <h1>Go to your UCLA class planner.</h1>
         }
-        <form>
-          <input type="text" placeholder="Enter a Subject" required />
-          <button type="submit">Go!</button>
-        </form>
       </div>
     )
   }
 }
-
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.js</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
-
 
 export default App;
