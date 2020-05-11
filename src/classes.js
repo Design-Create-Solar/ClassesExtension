@@ -39,6 +39,7 @@ async function getDescSlots(link) {
 
 //returns title, spots, waitlist, days, time, location, units, instructor, class detail link
 //for each class in the given subject
+//THIS FUNCTION HAS NOT BEEN UPDATED, PLEASE USE getClassDetailsIter INSTEAD
 async function getClassDetails(subject) {
   const browser = await puppeteer.launch({
     executablePath: "/usr/bin/chromium-browser",
@@ -239,6 +240,14 @@ async function getClassDetailsIter(number) {
 
   //create JSONs
   let titles = await page.evaluate(async () => {
+    let subject = document
+      .querySelector(
+        "div#divSearchResultsHeader > span#spanSearchResultsHeader"
+      )
+      .textContent.split(", ")[2];
+    subjectSplit = subject.split(" (");
+    let subjectName = subjectSplit[0];
+    let subjectCode = subjectSplit[1].replace(")", "");
     let classes = []; //array of JSONs
     let elements = document.querySelectorAll("div.class-title");
     for (var element of elements) {
@@ -256,6 +265,8 @@ async function getClassDetailsIter(number) {
           //classes with multiple instructors will return 2 names without a space in between the names
           let instructor = lecture.querySelector("div.instructorColumn > p");
           let detail = lecture.querySelector("div.sectionColumn a");
+          obj.subjectName = subjectName;
+          obj.subjectCode = subjectCode;
           if (title != null) {
             obj.title = title.textContent;
           }
