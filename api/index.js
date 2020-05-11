@@ -1,0 +1,16 @@
+const bodyParser = require("body-parser");
+const express = require("express"),
+  app = express(),
+  port = 5000;
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+//routes
+const documents = require("./routes/documents");
+app.use("/documents", documents);
+
+app.listen(port);
+console.log("Listening on port " + port);
+
+module.exports = app;
