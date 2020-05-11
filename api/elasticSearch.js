@@ -3,6 +3,7 @@ const esClient = new es.Client({
   host: "localhost:9200",
   log: "trace",
 });
+const scraping = require("../src/classes");
 
 const createIndex = async function (indexName) {
   return await esClient.indices.create({
