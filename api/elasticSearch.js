@@ -3,7 +3,6 @@ const esClient = new es.Client({
   host: "localhost:9200",
   log: "trace",
 });
-const scraping = require("../src/classes");
 
 const createIndex = async function (indexName) {
   return await esClient.indices.create({
@@ -39,7 +38,7 @@ const insertDoc = async function (indexName, _id, mappingType, data) {
 };
 exports.insertDoc = insertDoc;
 
-var indexall = function (bigJson, index, type) {
+var indexall = function (bigJson, index, type, callback) {
   esClient.bulk(
     {
       maxRetries: 5,
@@ -47,9 +46,11 @@ var indexall = function (bigJson, index, type) {
       type: type,
       body: bigJson,
     },
-    function (err) {
+    function (err, res) {
       if (err) {
         console.log(err);
+      } else {
+        callback(res.items);
       }
     }
   );
