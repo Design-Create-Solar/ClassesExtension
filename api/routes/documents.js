@@ -4,9 +4,9 @@ const scraping = require("../../src/classes");
 
 var elastic = require("../elasticsearch");
 
-/* GET suggestions */
-router.get("/search/:input", function (req, res) {
-  elastic.searchDoc(req.params.input).then(function (result) {
+//request body should have index field and query field
+router.get("/search", function (req, res) {
+  elastic.searchDoc(req.body).then(function (result) {
     res.json(result);
   });
 });
@@ -18,14 +18,17 @@ router.delete("/:index", function (req, res) {
     .catch(res.send("Error deleting index"));
 });
 
-router.post("/createIndex/:indexName", function (req, res) {
+router.post("/createIndex/:index", function (req, res) {
   elastic
-    .createIndex(req.params.indexName)
+    .createIndex(req.params.index)
     .then(res.send("Created index!"))
     .catch(res.send("Error creating index :("));
 });
 
-router.post("/populateDB/:index", function (req, res) {
+router.post("/populateClassesDB/:index", async function (req, res) {
+  await elastic.deleteIndex(req.params.index);
+  await elastic.createIndex(req.params.index);
+
   const forLoop = async () => {
     var TOTAL_SUBJECTS = 2;
     var bigJson = [];
@@ -49,7 +52,8 @@ router.post("/populateDB/:index", function (req, res) {
               },
             },
             {
-              subject: list[current].subject,
+              subjectName: list[current].subjectName,
+              subjectCode: list[current].subjectCode,
               title: list[current].title,
               spots: list[current].spots,
               waitlist: list[current].waitlist,
@@ -70,7 +74,8 @@ router.post("/populateDB/:index", function (req, res) {
               },
             },
             {
-              subject: list[current].subject,
+              subjectName: list[current].subjectName,
+              subjectCode: list[current].subjectCode,
               title: list[current].title,
               spots: list[current].spots,
               waitlist: list[current].waitlist,
@@ -89,15 +94,16 @@ router.post("/populateDB/:index", function (req, res) {
     };
 
     makebulk(bigJson, req.params.index, function (response) {
-      console.log("Bulk content prepared");
       elastic.indexall(response, req.params.index, "class", function (
         response
       ) {
-        console.log(response);
+        //console.log(response)
+        console.log("Indexed");
       });
     });
   };
-  forLoop();
+  await forLoop();
+  res.send("Complete.");
 });
 
 /* POST document to be indexed */

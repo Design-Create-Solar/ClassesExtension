@@ -11,16 +11,6 @@ const createIndex = async function (indexName) {
 };
 exports.createIndex = createIndex;
 
-const addmappingToIndex = async function (indexName, mappingType, mapping) {
-  console.log(mapping);
-  return await esClient.indices.putMapping({
-    index: indexName,
-    type: mappingType,
-    body: mapping,
-  });
-};
-exports.addmappingToIndex = addmappingToIndex;
-
 const deleteIndex = async function (indexName) {
   esClient.indices.delete({ index: indexName }, function (error, response) {
     console.log("delete", response);
@@ -57,11 +47,18 @@ var indexall = function (bigJson, index, type, callback) {
 };
 exports.indexall = indexall;
 
-const searchDoc = async function (indexName, mappingType, payload) {
+const searchDoc = async function (payload) {
   return await esClient.search({
-    index: indexName,
-    type: mappingType,
-    body: payload,
+    index: payload.index,
+    body: payload.body,
   });
 };
 exports.searchDoc = searchDoc;
+
+const addmappingToIndex = async function (indexName, mapping) {
+  return await esClient.indices.putMapping({
+    index: indexName,
+    body: mapping.mapping,
+  });
+};
+exports.addmappingToIndex = addmappingToIndex;
