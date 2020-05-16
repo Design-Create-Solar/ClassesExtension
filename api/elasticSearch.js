@@ -11,6 +11,25 @@ const createIndex = async function (indexName) {
 };
 exports.createIndex = createIndex;
 
+const putMapping = async function (indexName) {
+  return await esClient.indices.putMapping({
+    index: indexName,
+    body: {
+      properties: {
+        times: {
+          type: "nested",
+          properties: {
+            time: {
+              type: "integer_range",
+            },
+          },
+        },
+      },
+    },
+  });
+};
+exports.putMapping = putMapping;
+
 const deleteIndex = async function (indexName) {
   esClient.indices.delete({ index: indexName }, function (error, response) {
     console.log("delete", response);
@@ -54,11 +73,3 @@ const searchDoc = async function (payload) {
   });
 };
 exports.searchDoc = searchDoc;
-
-const addmappingToIndex = async function (indexName, mapping) {
-  return await esClient.indices.putMapping({
-    index: indexName,
-    body: mapping.mapping,
-  });
-};
-exports.addmappingToIndex = addmappingToIndex;

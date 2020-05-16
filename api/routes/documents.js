@@ -27,7 +27,10 @@ router.post("/createIndex/:index", function (req, res) {
 
 router.post("/populateClassesDB/:index", async function (req, res) {
   await elastic.deleteIndex(req.params.index);
+  await new Promise((resolve) => setTimeout(resolve, 3000));
   await elastic.createIndex(req.params.index);
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  await elastic.putMapping(req.params.index);
 
   const forLoop = async () => {
     var TOTAL_SUBJECTS = 2;
@@ -58,7 +61,14 @@ router.post("/populateClassesDB/:index", async function (req, res) {
               spots: list[current].spots,
               waitlist: list[current].waitlist,
               days: list[current].days,
-              time: list[current].time,
+              times: [
+                {
+                  time: {
+                    gte: 20,
+                    lte: 30,
+                  },
+                },
+              ],
               location: list[current].location,
               units: list[current].units,
               instructor: list[current].instructor,
@@ -80,7 +90,14 @@ router.post("/populateClassesDB/:index", async function (req, res) {
               spots: list[current].spots,
               waitlist: list[current].waitlist,
               days: list[current].days,
-              time: list[current].time,
+              times: [
+                {
+                  time: {
+                    gte: 20,
+                    lte: 30,
+                  },
+                },
+              ],
               location: list[current].location,
               units: list[current].units,
               instructor: list[current].instructor,

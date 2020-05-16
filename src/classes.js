@@ -100,67 +100,96 @@ async function getClassDetailsIter(number) {
     let subjectName = subjectSplit[0];
     let subjectCode = subjectSplit[1].replace(")", "");
     let classes = []; //array of JSONs
-    let elements = document.querySelectorAll("div.class-title");
-    for (var element of elements) {
-      if (element != null) {
-        let lectures = element.querySelectorAll("div.primary-row");
-        for (var lecture of lectures) {
-          let obj = {};
-          let title = element.querySelector("h3");
-          let spots = lecture.querySelector("div.statusColumn > p");
-          let waitlist = lecture.querySelector("div.waitlistColumn > p");
-          let days = lecture.querySelector("div.dayColumn a");
-          let time = lecture.querySelector("div.timeColumn > p");
-          let location = lecture.querySelector("div.locationColumn > p");
-          let units = lecture.querySelector("div.unitsColumn > p");
-          //classes with multiple instructors will return 2 names without a space in between the names
-          let instructor = lecture.querySelector("div.instructorColumn > p");
-          let detail = lecture.querySelector("div.sectionColumn a");
-          obj.subjectName = subjectName;
-          obj.subjectCode = subjectCode;
-          if (title != null) {
-            obj.title = title.textContent;
-          }
-          if (spots != null) {
-            obj.spots = spots.innerHTML.split("<br>")[1];
-          }
-          if (waitlist != null) {
-            obj.waitlist = waitlist.textContent;
-          }
-          if (days != null) {
-            obj.days = days.textContent;
-          }
-          if (time != null) {
-            obj.time = time.textContent;
-          }
-          if (location != null) {
-            obj.location = location.textContent.trim().replace("\n", "");
-          }
-          if (units != null) {
-            obj.units = units.textContent;
-          }
-          if (instructor != null) {
-            obj.instructor = instructor.textContent;
-          }
-          if (detail != null) {
-            obj.detail = detail.href;
-          }
-          //discussions
-          let secondarySection = element.querySelector("div.secondarySection");
-          if (secondarySection != null) {
-            let secondaryTimeElements = secondarySection.querySelectorAll(
-              "div.timeColumn > p"
-            );
-            let discussions = [];
-            for (var element of secondaryTimeElements) {
-              discussions.push(element.textContent);
+    //PUT HERE: if multiple pages, create counter for pages,
+    //while loop for counter and if counter > 1 go to next page by clicking right arrow
+    if (document.querySelector("div.demo > div.jPagniate")) {
+      numPages = document
+        .querySelector("div.demo > div.jPagniate")
+        .querySelector("ul.Jpag-pages")
+        .getElementsByTagName("li").length;
+    } else {
+      numPages = 1;
+    }
+    while (numPages > 0) {
+      let elements = document.querySelectorAll("div.class-title");
+      for (var element of elements) {
+        if (element != null) {
+          let lectures = element.querySelectorAll("div.primary-row");
+          for (var lecture of lectures) {
+            let obj = {};
+            let title = element.querySelector("h3");
+            let spots = lecture.querySelector("div.statusColumn > p");
+            let waitlist = lecture.querySelector("div.waitlistColumn > p");
+            let days = lecture.querySelector("div.dayColumn a");
+            let time = lecture.querySelector("div.timeColumn > p");
+            let location = lecture.querySelector("div.locationColumn > p");
+            let units = lecture.querySelector("div.unitsColumn > p");
+            //classes with multiple instructors will return 2 names without a space in between the names
+            let instructor = lecture.querySelector("div.instructorColumn > p");
+            let detail = lecture.querySelector("div.sectionColumn a");
+            obj.subjectName = subjectName;
+            obj.subjectCode = subjectCode;
+            if (title != null) {
+              obj.title = title.textContent;
             }
-            obj.discussions = discussions;
+            if (spots != null) {
+              obj.spots = spots.innerHTML.split("<br>")[1];
+            }
+            if (waitlist != null) {
+              obj.waitlist = waitlist.textContent;
+            }
+            if (days != null) {
+              obj.days = days.textContent;
+            }
+            if (time != null) {
+              obj.time = time.textContent;
+            }
+            if (location != null) {
+              obj.location = location.textContent.trim().replace("\n", "");
+            }
+            if (units != null) {
+              obj.units = units.textContent;
+            }
+            if (instructor != null) {
+              obj.instructor = instructor.textContent;
+            }
+            if (detail != null) {
+              obj.detail = detail.href;
+            }
+            //discussions
+            let secondarySection = element.querySelector(
+              "div.secondarySection"
+            );
+            if (secondarySection != null) {
+              let secondaryTimeElements = secondarySection.querySelectorAll(
+                "div.timeColumn > p"
+              );
+              let discussions = [];
+              for (var element of secondaryTimeElements) {
+                discussions.push(element.textContent);
+              }
+              obj.discussions = discussions;
+            }
+            classes.push(obj);
           }
-          classes.push(obj);
         }
       }
+      if (numPages > 1) {
+        //go to next page
+        await page.focus("div.jPag-control-front > span.jPag-snext-img");
+        await page.waitFor(500);
+        await page.keyboard.press("Enter");
+        //now on results page
+        await page.waitForSelector("#divExpandAll");
+        //expand all classes
+        await page.focus("#divExpandAll > a");
+        await page.waitFor(500);
+        await page.keyboard.press("Enter");
+        await page.waitFor(5000); //need to replace with smarter check
+      }
+      numPages -= 1;
     }
+
     return classes;
   });
 
@@ -190,10 +219,14 @@ async function getClassDetailsIter(number) {
       }
       timeStrings.push(int.toString() + minutes.toString());
     }
-    titles[i].time =
-      moment(timeStrings[0], "hmm").format("HH:mm") +
-      "-" +
-      moment(timeStrings[1], "hmm").format("HH:mm");
+    titles[i].startTime = parseInt(
+      moment(timeStrings[0], "hmm").format("HHmm"),
+      10
+    );
+    titles[i].endTime = parseInt(
+      moment(timeStrings[1], "hmm").format("HHmm"),
+      10
+    );
 
     //if there are discussions:
     if (titles[i].discussions != null) {
@@ -224,9 +257,9 @@ async function getClassDetailsIter(number) {
           timeStrings.push(int.toString() + minutes.toString());
         }
         titles[i].discussions[d] =
-          moment(timeStrings[0], "hmm").format("HH:mm") +
+          moment(timeStrings[0], "hmm").format("HHmm") +
           "-" +
-          moment(timeStrings[1], "hmm").format("HH:mm");
+          moment(timeStrings[1], "hmm").format("HHmm");
       }
     }
   }
@@ -234,5 +267,4 @@ async function getClassDetailsIter(number) {
 }
 
 exports.getDescSlots = getDescSlots;
-exports.getClassDetails = getClassDetails;
 exports.getClassDetailsIter = getClassDetailsIter;
