@@ -72,9 +72,13 @@ async function getClassDetailsIter(number) {
   await page.keyboard.press("Enter");
 
   let isNull = false;
-  await page.waitForNavigation({ timeout: 10000 }).catch(() => {
-    isNull = true;
-  });
+  await page
+    .waitForNavigation({
+      timeout: 10000,
+    })
+    .catch(() => {
+      isNull = true;
+    });
 
   if (isNull == true) {
     await browser.close();
@@ -87,120 +91,138 @@ async function getClassDetailsIter(number) {
   await page.focus("#divExpandAll > a");
   await page.waitFor(500);
   await page.keyboard.press("Enter");
-  await page.waitFor(5000); //need to replace with smarter check
+  await page.waitFor(5000);
+  //if multiple pages, create counter for pages,
+  //while loop for counter and if counter > 1 go to next page by clicking right arrow
+  let numPages = 1;
 
-  //create JSONs
-  let titles = await page.evaluate(async () => {
-    let subject = document
-      .querySelector(
-        "div#divSearchResultsHeader > span#spanSearchResultsHeader"
-      )
-      .textContent.split(", ")[2];
-    subjectSplit = subject.split(" (");
-    let subjectName = subjectSplit[0];
-    let subjectCode = subjectSplit[1].replace(")", "");
-    let classes = []; //array of JSONs
-    //PUT HERE: if multiple pages, create counter for pages,
-    //while loop for counter and if counter > 1 go to next page by clicking right arrow
-    if (document.querySelector("div.demo > div.jPagniate")) {
-      numPages = document
-        .querySelector("div.demo > div.jPagniate")
-        .querySelector("ul.Jpag-pages")
+  let multiplePages = await page.$("div.demo > div.demo1.jPaginate");
+
+  if (multiplePages != null) {
+    numPages = await page.evaluate(() => {
+      let numPages = document
+        .querySelectorAll("div.jPaginate > div")[1]
+        .querySelector("ul")
         .getElementsByTagName("li").length;
-    } else {
-      numPages = 1;
-    }
-    while (numPages > 0) {
-      let elements = document.querySelectorAll("div.class-title");
-      for (var element of elements) {
-        if (element != null) {
-          let lectures = element.querySelectorAll("div.primary-row");
-          for (var lecture of lectures) {
-            let obj = {};
-            let title = element.querySelector("h3");
-            let spots = lecture.querySelector("div.statusColumn > p");
-            let waitlist = lecture.querySelector("div.waitlistColumn > p");
-            let days = lecture.querySelector("div.dayColumn a");
-            let time = lecture.querySelector("div.timeColumn > p");
-            let location = lecture.querySelector("div.locationColumn > p");
-            let units = lecture.querySelector("div.unitsColumn > p");
-            //classes with multiple instructors will return 2 names without a space in between the names
-            let instructor = lecture.querySelector("div.instructorColumn > p");
-            let detail = lecture.querySelector("div.sectionColumn a");
-            obj.subjectName = subjectName;
-            obj.subjectCode = subjectCode;
-            if (title != null) {
-              obj.title = title.textContent;
-            }
-            if (spots != null) {
-              obj.spots = spots.innerHTML.split("<br>")[1];
-            }
-            if (waitlist != null) {
-              obj.waitlist = waitlist.textContent;
-            }
-            if (days != null) {
-              obj.days = days.textContent;
-            }
-            if (time != null) {
-              obj.time = time.textContent;
-            }
-            if (location != null) {
-              obj.location = location.textContent.trim().replace("\n", "");
-            }
-            if (units != null) {
-              obj.units = units.textContent;
-            }
-            if (instructor != null) {
-              obj.instructor = instructor.textContent;
-            }
-            if (detail != null) {
-              obj.detail = detail.href;
-            }
-            //discussions
-            let secondarySection = element.querySelector(
-              "div.secondarySection"
-            );
-            if (secondarySection != null) {
-              let secondaryTimeElements = secondarySection.querySelectorAll(
-                "div.timeColumn > p"
+      return numPages;
+    });
+  }
+  let pageIndex = 0;
+
+  let classInfo = [];
+  while (numPages > 0) {
+    //create JSONs
+    classInfo = [
+      ...classInfo,
+      ...(await page.evaluate(async () => {
+        let subject = document
+          .querySelector(
+            "div#divSearchResultsHeader > span#spanSearchResultsHeader"
+          )
+          .textContent.split(", ")[2];
+        subjectSplit = subject.split(" (");
+        let subjectName = subjectSplit[0];
+        let subjectCode = subjectSplit[1].replace(")", "");
+        let classes = []; //array of JSONs
+
+        let elements = document.querySelectorAll("div.class-title");
+        for (var element of elements) {
+          if (element != null) {
+            let lectures = element.querySelectorAll("div.primary-row");
+            for (var lecture of lectures) {
+              let obj = {};
+              let title = element.querySelector("h3");
+              let spots = lecture.querySelector("div.statusColumn > p");
+              let waitlist = lecture.querySelector("div.waitlistColumn > p");
+              let days = lecture.querySelector("div.dayColumn a");
+              let time = lecture.querySelector("div.timeColumn > p");
+              let location = lecture.querySelector("div.locationColumn > p");
+              let units = lecture.querySelector("div.unitsColumn > p");
+              //classes with multiple instructors will return 2 names without a space in between the names
+              let instructor = lecture.querySelector(
+                "div.instructorColumn > p"
               );
-              let discussions = [];
-              for (var element of secondaryTimeElements) {
-                discussions.push(element.textContent);
+              let detail = lecture.querySelector("div.sectionColumn a");
+              obj.subjectName = subjectName;
+              obj.subjectCode = subjectCode;
+              if (title != null) {
+                obj.title = title.textContent;
               }
-              obj.discussions = discussions;
+              if (spots != null) {
+                obj.spots = spots.innerHTML.split("<br>")[1];
+              }
+              if (waitlist != null) {
+                obj.waitlist = waitlist.textContent;
+              }
+              if (days != null) {
+                obj.days = days.textContent;
+              }
+              if (time != null) {
+                obj.time = time.textContent;
+              }
+              if (location != null) {
+                obj.location = location.textContent.trim().replace("\n", "");
+              }
+              if (units != null) {
+                obj.units = units.textContent;
+              }
+              if (instructor != null) {
+                obj.instructor = instructor.textContent;
+              }
+              if (detail != null) {
+                obj.detail = detail.href;
+              }
+              //discussions
+              let secondarySection = element.querySelector(
+                "div.secondarySection"
+              );
+              if (secondarySection != null) {
+                let secondaryTimeElements = secondarySection.querySelectorAll(
+                  "div.timeColumn > p"
+                );
+                let discussions = [];
+                for (var element of secondaryTimeElements) {
+                  discussions.push(element.textContent);
+                }
+                obj.discussions = discussions;
+              }
+              classes.push(obj);
             }
-            classes.push(obj);
           }
         }
-      }
-      if (numPages > 1) {
-        //go to next page
-        await page.focus("div.jPag-control-front > span.jPag-snext-img");
-        await page.waitFor(500);
-        await page.keyboard.press("Enter");
-        //now on results page
-        await page.waitForSelector("#divExpandAll");
-        //expand all classes
-        await page.focus("#divExpandAll > a");
-        await page.waitFor(500);
-        await page.keyboard.press("Enter");
-        await page.waitFor(5000); //need to replace with smarter check
-      }
-      numPages -= 1;
+
+        return classes;
+      })),
+    ];
+    if (numPages > 1) {
+      //go to next page
+      await page.$eval("div.jPag-control-front > span.jPag-snext-img", (elem) =>
+        elem.click()
+      );
+      await page.waitFor(500);
+
+      //now on results page
+      await page.waitForSelector("#divExpandAll");
+      //expand all classes
+      await page.focus("#divExpandAll > a");
+
+      await page.waitFor(500);
+      await page.keyboard.press("Enter");
+
+      await page.waitFor(5000);
     }
 
-    return classes;
-  });
+    numPages -= 1;
+  }
 
   await browser.close();
 
-  //loop through titles processing the times
-  for (let i = 0; i < titles.length; i++) {
-    if (titles[i].time == "" || titles[i].time.match(/\d+/) == null) {
+  //loop through classInfo processing the times
+  for (let i = 0; i < classInfo.length; i++) {
+    if (classInfo[i].time == "" || classInfo[i].time.match(/\d+/) == null) {
       continue;
     }
-    time = titles[i].time.split("-");
+    time = classInfo[i].time.split("-");
 
     timeStrings = [];
     for (let j = 0; j < time.length; j++) {
@@ -219,25 +241,25 @@ async function getClassDetailsIter(number) {
       }
       timeStrings.push(int.toString() + minutes.toString());
     }
-    titles[i].startTime = parseInt(
+    classInfo[i].startTime = parseInt(
       moment(timeStrings[0], "hmm").format("HHmm"),
       10
     );
-    titles[i].endTime = parseInt(
+    classInfo[i].endTime = parseInt(
       moment(timeStrings[1], "hmm").format("HHmm"),
       10
     );
 
     //if there are discussions:
-    if (titles[i].discussions != null) {
-      for (let d = 0; d < titles[i].discussions.length; d++) {
+    if (classInfo[i].discussions != null) {
+      for (let d = 0; d < classInfo[i].discussions.length; d++) {
         if (
-          titles[i].discussions[d].match(/\d+/) == null ||
-          titles[i].discussions[d] == ""
+          classInfo[i].discussions[d].match(/\d+/) == null ||
+          classInfo[i].discussions[d] == ""
         ) {
           continue;
         }
-        time = titles[i].discussions[d].split("-");
+        time = classInfo[i].discussions[d].split("-");
 
         timeStrings = [];
         for (let j = 0; j < time.length; j++) {
@@ -256,14 +278,14 @@ async function getClassDetailsIter(number) {
           }
           timeStrings.push(int.toString() + minutes.toString());
         }
-        titles[i].discussions[d] =
+        classInfo[i].discussions[d] =
           moment(timeStrings[0], "hmm").format("HHmm") +
           "-" +
           moment(timeStrings[1], "hmm").format("HHmm");
       }
     }
   }
-  return titles;
+  return classInfo;
 }
 
 exports.getDescSlots = getDescSlots;
