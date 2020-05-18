@@ -11,6 +11,12 @@ router.get("/search", function (req, res) {
   });
 });
 
+router.get("/searchOpen", function (req, res) {
+  elastic.searchOpen(req.body).then(function (result) {
+    res.json(result);
+  });
+});
+
 router.delete("/:index", function (req, res) {
   elastic
     .deleteIndex(req.params.index)
@@ -22,7 +28,14 @@ router.post("/createIndex/:index", function (req, res) {
   elastic
     .createIndex(req.params.index)
     .then(res.send("Created index!"))
-    .catch(res.send("Error creating index :("));
+    .catch(res.send("Error creating index"));
+});
+
+router.post("/putMapping/:index", function (req, res) {
+  elastic
+    .putMapping(req.params.index)
+    .then(res.send("Mapped!"))
+    .catch(res.send("Error mapping"));
 });
 
 router.post("/populateClassesDB/:index", async function (req, res) {
@@ -31,6 +44,7 @@ router.post("/populateClassesDB/:index", async function (req, res) {
   await elastic.createIndex(req.params.index);
   await new Promise((resolve) => setTimeout(resolve, 2000));
   await elastic.putMapping(req.params.index);
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   const forLoop = async () => {
     var TOTAL_SUBJECTS = 2;
@@ -51,7 +65,6 @@ router.post("/populateClassesDB/:index", async function (req, res) {
             {
               index: {
                 _index: index,
-                _type: "class",
               },
             },
             {
@@ -64,8 +77,8 @@ router.post("/populateClassesDB/:index", async function (req, res) {
               times: [
                 {
                   time: {
-                    gte: 20,
-                    lte: 30,
+                    gte: list[current].startTime,
+                    lte: list[current].endTime,
                   },
                 },
               ],
@@ -80,7 +93,6 @@ router.post("/populateClassesDB/:index", async function (req, res) {
             {
               index: {
                 _index: index,
-                _type: "class",
               },
             },
             {
@@ -93,8 +105,8 @@ router.post("/populateClassesDB/:index", async function (req, res) {
               times: [
                 {
                   time: {
-                    gte: 20,
-                    lte: 30,
+                    gte: list[current].startTime,
+                    lte: list[current].endTime,
                   },
                 },
               ],
@@ -111,16 +123,14 @@ router.post("/populateClassesDB/:index", async function (req, res) {
     };
 
     makebulk(bigJson, req.params.index, function (response) {
-      elastic.indexall(response, req.params.index, "class", function (
-        response
-      ) {
+      elastic.indexall(response, req.params.index, function (response) {
         //console.log(response)
         console.log("Indexed");
       });
     });
   };
   await forLoop();
-  res.send("Complete.");
+  res.send("Completed bulk insert");
 });
 
 /* POST document to be indexed */

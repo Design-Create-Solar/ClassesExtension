@@ -1,7 +1,7 @@
 const puppeteer = require("puppeteer");
 const moment = require("moment");
 
-//grabs JSON of class description and slots given the link to the detail page
+//grabs JSON of class description and slots given the link to the detail page CURRENTLY DOES NOT WORK ON MULTIPLE PAGES
 //remember, this function must complete its task before returning something
 //attempting to call it without await or .then will result in no return value
 async function getDescSlots(link) {
@@ -107,7 +107,6 @@ async function getClassDetailsIter(number) {
       return numPages;
     });
   }
-  let pageIndex = 0;
 
   let classInfo = [];
   while (numPages > 0) {
@@ -146,25 +145,25 @@ async function getClassDetailsIter(number) {
               obj.subjectName = subjectName;
               obj.subjectCode = subjectCode;
               if (title != null) {
-                obj.title = title.textContent;
+                obj.title = title.innerText;
               }
               if (spots != null) {
                 obj.spots = spots.innerHTML.split("<br>")[1];
               }
               if (waitlist != null) {
-                obj.waitlist = waitlist.textContent;
+                obj.waitlist = waitlist.innerText;
               }
               if (days != null) {
-                obj.days = days.textContent;
+                obj.days = days.innerText;
               }
               if (time != null) {
-                obj.time = time.textContent;
+                obj.time = time.innerText;
               }
               if (location != null) {
-                obj.location = location.textContent.trim().replace("\n", "");
+                obj.location = location.innerText.trim().replace("\n", "");
               }
               if (units != null) {
-                obj.units = units.textContent;
+                obj.units = units.innerText;
               }
               if (instructor != null) {
                 obj.instructor = instructor.textContent;

@@ -37,22 +37,19 @@ const deleteIndex = async function (indexName) {
 };
 exports.deleteIndex = deleteIndex;
 
-const insertDoc = async function (indexName, _id, mappingType, data) {
+const insertDoc = async function (data) {
   return await esClient.index({
-    index: indexName,
-    type: mappingType,
-    id: _id,
+    index: "planner",
     body: data,
   });
 };
 exports.insertDoc = insertDoc;
 
-var indexall = function (bigJson, index, type, callback) {
+var indexall = function (bigJson, index, callback) {
   esClient.bulk(
     {
       maxRetries: 5,
       index: index,
-      type: type,
       body: bigJson,
     },
     function (err, res) {
@@ -73,3 +70,11 @@ const searchDoc = async function (payload) {
   });
 };
 exports.searchDoc = searchDoc;
+
+// const searchOpen = async function (payload) {
+//   return await esClient.search({
+//     index: payload.index,
+//     body:
+//   });
+// };
+// exports.searchDoc = searchOpen;
