@@ -74,7 +74,40 @@ exports.searchDoc = searchDoc;
 // const searchOpen = async function (payload) {
 //   return await esClient.search({
 //     index: payload.index,
-//     body:
+//     body: {
+//       query: {
+//         bool: {
+//           must_not: [
+//             {
+//               nested: {
+//                 path: "times",
+//                 query: {
+//                   range: {
+//                     "times.time": {
+//                       gte: 1100,
+//                       lte: 1150,
+//                     },
+//                   },
+//                 },
+//               },
+//             },
+//             {
+//               nested: {
+//                 path: "times",
+//                 query: {
+//                   range: {
+//                     "times.time": {
+//                       gte: 1000,
+//                       lte: 1050,
+//                     },
+//                   },
+//                 },
+//               },
+//             },
+//           ],
+//         },
+//       },
+//     },
 //   });
 // };
 // exports.searchDoc = searchOpen;

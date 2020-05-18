@@ -11,11 +11,11 @@ router.get("/search", function (req, res) {
   });
 });
 
-router.get("/searchOpen", function (req, res) {
-  elastic.searchOpen(req.body).then(function (result) {
-    res.json(result);
-  });
-});
+// router.get("/searchOpen", function (req, res) {
+//   elastic.searchOpen(req.body).then(function (result) {
+//     res.json(result);
+//   });
+// });
 
 router.delete("/:index", function (req, res) {
   elastic
@@ -47,7 +47,7 @@ router.post("/populateClassesDB/:index", async function (req, res) {
   await new Promise((resolve) => setTimeout(resolve, 2000));
 
   const forLoop = async () => {
-    var TOTAL_SUBJECTS = 2;
+    var TOTAL_SUBJECTS = 3;
     var bigJson = [];
     for (let i = 0; i < TOTAL_SUBJECTS; i++) {
       await scraping
@@ -71,9 +71,14 @@ router.post("/populateClassesDB/:index", async function (req, res) {
               subjectName: list[current].subjectName,
               subjectCode: list[current].subjectCode,
               title: list[current].title,
+              status: list[current].status,
               spots: list[current].spots,
               waitlist: list[current].waitlist,
-              days: list[current].days,
+              M: list[current].M,
+              T: list[current].T,
+              W: list[current].W,
+              R: list[current].R,
+              F: list[current].F,
               times: [
                 {
                   time: {
@@ -99,9 +104,14 @@ router.post("/populateClassesDB/:index", async function (req, res) {
               subjectName: list[current].subjectName,
               subjectCode: list[current].subjectCode,
               title: list[current].title,
+              status: list[current].status,
               spots: list[current].spots,
               waitlist: list[current].waitlist,
-              days: list[current].days,
+              M: list[current].M,
+              T: list[current].T,
+              W: list[current].W,
+              R: list[current].R,
+              F: list[current].F,
               times: [
                 {
                   time: {

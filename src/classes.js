@@ -91,7 +91,7 @@ async function getClassDetailsIter(number) {
   await page.focus("#divExpandAll > a");
   await page.waitFor(500);
   await page.keyboard.press("Enter");
-  await page.waitFor(5000);
+  await page.waitFor(10000);
   //if multiple pages, create counter for pages,
   //while loop for counter and if counter > 1 go to next page by clicking right arrow
   let numPages = 1;
@@ -129,15 +129,21 @@ async function getClassDetailsIter(number) {
           if (element != null) {
             let lectures = element.querySelectorAll("div.primary-row");
             for (var lecture of lectures) {
+              let time = lecture.querySelector("div.timeColumn > p");
+              if (
+                time == null ||
+                time.innerText == "" ||
+                time.innerText == "To be arranged"
+              ) {
+                break;
+              }
               let obj = {};
               let title = element.querySelector("h3");
-              let spots = lecture.querySelector("div.statusColumn > p");
+              let status = lecture.querySelector("div.statusColumn > p");
               let waitlist = lecture.querySelector("div.waitlistColumn > p");
               let days = lecture.querySelector("div.dayColumn a");
-              let time = lecture.querySelector("div.timeColumn > p");
               let location = lecture.querySelector("div.locationColumn > p");
               let units = lecture.querySelector("div.unitsColumn > p");
-              //classes with multiple instructors will return 2 names without a space in between the names
               let instructor = lecture.querySelector(
                 "div.instructorColumn > p"
               );
@@ -147,14 +153,39 @@ async function getClassDetailsIter(number) {
               if (title != null) {
                 obj.title = title.innerText;
               }
-              if (spots != null) {
-                obj.spots = spots.innerHTML.split("<br>")[1];
+              if (status != null) {
+                obj.status = status.innerText.split("\n")[0].replace(/ .*/, "");
+                obj.spots = status.innerHTML.split("<br>")[1];
               }
               if (waitlist != null) {
                 obj.waitlist = waitlist.innerText;
               }
               if (days != null) {
-                obj.days = days.innerText;
+                let daysString = days.innerText;
+                obj.M = false;
+                obj.T = false;
+                obj.W = false;
+                obj.R = false;
+                obj.F = false;
+                for (i in daysString) {
+                  switch (daysString[i]) {
+                    case "M":
+                      obj.M = true;
+                      break;
+                    case "T":
+                      obj.T = true;
+                      break;
+                    case "W":
+                      obj.W = true;
+                      break;
+                    case "R":
+                      obj.R = true;
+                      break;
+                    case "F":
+                      obj.F = true;
+                      break;
+                  }
+                }
               }
               if (time != null) {
                 obj.time = time.innerText;
@@ -165,8 +196,9 @@ async function getClassDetailsIter(number) {
               if (units != null) {
                 obj.units = units.innerText;
               }
+              //classes with multiple instructors will return names with a comma in between the names
               if (instructor != null) {
-                obj.instructor = instructor.textContent;
+                obj.instructor = instructor.innerText.replace("\n", ", ");
               }
               if (detail != null) {
                 obj.detail = detail.href;
@@ -181,7 +213,13 @@ async function getClassDetailsIter(number) {
                 );
                 let discussions = [];
                 for (var element of secondaryTimeElements) {
-                  discussions.push(element.textContent);
+                  let discussionObj = {};
+                  discussionObj.time = element.textContent;
+                  discussionObj.status = secondarySection
+                    .querySelector("div.statusColumn > p")
+                    .innerText.split("\n")[0]
+                    .replace(/ .*/, "");
+                  discussions.push(discussionObj);
                 }
                 obj.discussions = discussions;
               }
@@ -189,7 +227,6 @@ async function getClassDetailsIter(number) {
             }
           }
         }
-
         return classes;
       })),
     ];
@@ -208,7 +245,7 @@ async function getClassDetailsIter(number) {
       await page.waitFor(500);
       await page.keyboard.press("Enter");
 
-      await page.waitFor(5000);
+      await page.waitFor(10000);
     }
 
     numPages -= 1;
@@ -253,12 +290,12 @@ async function getClassDetailsIter(number) {
     if (classInfo[i].discussions != null) {
       for (let d = 0; d < classInfo[i].discussions.length; d++) {
         if (
-          classInfo[i].discussions[d].match(/\d+/) == null ||
-          classInfo[i].discussions[d] == ""
+          classInfo[i].discussions[d].time.match(/\d+/) == null ||
+          classInfo[i].discussions[d].time == ""
         ) {
           continue;
         }
-        time = classInfo[i].discussions[d].split("-");
+        time = classInfo[i].discussions[d].time.split("-");
 
         timeStrings = [];
         for (let j = 0; j < time.length; j++) {
@@ -277,7 +314,7 @@ async function getClassDetailsIter(number) {
           }
           timeStrings.push(int.toString() + minutes.toString());
         }
-        classInfo[i].discussions[d] =
+        classInfo[i].discussions[d].time =
           moment(timeStrings[0], "hmm").format("HHmm") +
           "-" +
           moment(timeStrings[1], "hmm").format("HHmm");
