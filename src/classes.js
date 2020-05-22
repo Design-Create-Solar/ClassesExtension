@@ -211,15 +211,59 @@ async function getClassDetailsIter(number) {
                 let secondaryTimeElements = secondarySection.querySelectorAll(
                   "div.timeColumn > p"
                 );
+                let secondaryStatusElements = secondarySection.querySelectorAll(
+                  "div.statusColumn > p"
+                );
+                let secondaryDayElements = secondarySection.querySelectorAll(
+                  "div.dayColumn a"
+                );
                 let discussions = [];
+                let statusCounter = 0;
+                let daysCounter = 0;
                 for (var element of secondaryTimeElements) {
                   let discussionObj = {};
                   discussionObj.time = element.textContent;
-                  discussionObj.status = secondarySection
-                    .querySelector("div.statusColumn > p")
-                    .innerText.split("\n")[0]
+                  discussionObj.status = secondaryStatusElements[
+                    statusCounter
+                  ].innerText
+                    .split("\n")[0]
                     .replace(/ .*/, "");
+
+                  discussionObj.M = false;
+                  discussionObj.T = false;
+                  discussionObj.W = false;
+                  discussionObj.R = false;
+                  discussionObj.F = false;
+                  if (
+                    secondaryDayElements[daysCounter] != null &&
+                    secondaryDayElements[daysCounter] != "Not scheduled"
+                  ) {
+                    let daysString =
+                      secondaryDayElements[daysCounter].innerText;
+                    for (i in daysString) {
+                      switch (daysString[i]) {
+                        case "M":
+                          discussionObj.M = true;
+                          break;
+                        case "T":
+                          discussionObj.T = true;
+                          break;
+                        case "W":
+                          discussionObj.W = true;
+                          break;
+                        case "R":
+                          discussionObj.R = true;
+                          break;
+                        case "F":
+                          discussionObj.F = true;
+                          break;
+                      }
+                    }
+                  }
+
                   discussions.push(discussionObj);
+                  statusCounter += 1;
+                  daysCounter += 1;
                 }
                 obj.discussions = discussions;
               }
@@ -287,7 +331,10 @@ async function getClassDetailsIter(number) {
     );
 
     //if there are discussions:
-    if (classInfo[i].discussions != null) {
+    if (
+      classInfo[i].discussions != null &&
+      classInfo[i].discussions.length > 0
+    ) {
       for (let d = 0; d < classInfo[i].discussions.length; d++) {
         if (
           classInfo[i].discussions[d].time.match(/\d+/) == null ||
@@ -314,10 +361,19 @@ async function getClassDetailsIter(number) {
           }
           timeStrings.push(int.toString() + minutes.toString());
         }
-        classInfo[i].discussions[d].time =
-          moment(timeStrings[0], "hmm").format("HHmm") +
-          "-" +
-          moment(timeStrings[1], "hmm").format("HHmm");
+        let startTime = parseInt(
+          moment(timeStrings[0], "hmm").format("HHmm"),
+          10
+        );
+        let endTime = parseInt(
+          moment(timeStrings[1], "hmm").format("HHmm"),
+          10
+        );
+        classInfo[i].discussions[d].time = {
+          gte: startTime,
+          lte: endTime,
+        };
+        console.log(classInfo[i].discussions[d].time);
       }
     }
   }

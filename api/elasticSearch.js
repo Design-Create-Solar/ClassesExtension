@@ -24,6 +24,86 @@ const putMapping = async function (indexName) {
             },
           },
         },
+        discussionA: {
+          type: "nested",
+          properties: {
+            time: {
+              type: "integer_range",
+            },
+          },
+        },
+        discussionB: {
+          type: "nested",
+          properties: {
+            time: {
+              type: "integer_range",
+            },
+          },
+        },
+        discussionC: {
+          type: "nested",
+          properties: {
+            time: {
+              type: "integer_range",
+            },
+          },
+        },
+        discussionD: {
+          type: "nested",
+          properties: {
+            time: {
+              type: "integer_range",
+            },
+          },
+        },
+        discussionE: {
+          type: "nested",
+          properties: {
+            time: {
+              type: "integer_range",
+            },
+          },
+        },
+        discussionF: {
+          type: "nested",
+          properties: {
+            time: {
+              type: "integer_range",
+            },
+          },
+        },
+        discussionG: {
+          type: "nested",
+          properties: {
+            time: {
+              type: "integer_range",
+            },
+          },
+        },
+        discussionH: {
+          type: "nested",
+          properties: {
+            time: {
+              type: "integer_range",
+            },
+          },
+        },
+        discussionI: {
+          type: "nested",
+          properties: {
+            time: {
+              type: "integer_range",
+            },
+          },
+        },
+        discussionJ: {
+          type: "nested",
+          properties: {
+            time: {
+              type: "integer_range",
+            },
+          },
+        },
       },
     },
   });
