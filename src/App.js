@@ -9,15 +9,15 @@ class App extends Component {
     this.state = {
       site: '',
       existingClasses: [], // unprocessed -- for UI
-      /*
-         [{ days: "", times: "", subNum: ""}, { ... }] // TODO: type
-      */
-      processedExistingClasses: []
-      // of the form
-        // [ { daysarr[], gte: , lte: }, { daysarr[], gte: , lte: }, ... ]
-        //  ["M", "W"]
-        //  gte: 5
-        //  lte: 6
+        /*  [{ days: "", times: "", type, subNum: ""}, { ... }] */
+      processedExistingClasses: [],
+        /* of the form
+          [ { daysarr[], gte: , lte: }, { daysarr[], gte: , lte: }, ... ]
+          ["M", "W"]
+          gte: 5
+          lte: 6
+        */
+      visible: true
     }
   }
 
@@ -81,8 +81,9 @@ class App extends Component {
         {
           correctSite
           ? <div>
+              <button type="button">X</button>
               <form >
-                <input type="text" placeholder="Enter a Subject" required />
+                <input type="text" placeholder="Enter a Subject (ex: COM SCI)" required />
                 <button type="submit">Go!</button>
               </form>
               <table id="existing-classes">
