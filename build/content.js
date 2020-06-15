@@ -1,33 +1,8 @@
-/* global chrome */
-import React, { Component } from 'react';
-import './App.css'; 
-import jquery from 'jquery';
-window.$ = window.jQuery=jquery;
+// Some credit goes to "Easy Bruinwalk Ratings" Chrome Extension team 
+// @RobertUrsua and @preethamrn on Github
+// for hint on how to get app to rerender once background page updates
 
-class App extends Component {
-  constructor(props) {
-    super(props)
-
-    this.state = {
-      existingClasses: [], // unprocessed -- for UI
-        /*  [{ days: "", times: "", type, subNum: ""}, { ... }] */
-      processedExistingClasses: [],
-        /* of the form
-          [ { daysarr[], gte: , lte: }, { daysarr[], gte: , lte: }, ... ]
-          ["M", "W"]
-          gte: 5
-          lte: 6
-        */
-    }
-  }
-
-  componentDidMount() {
-    this.setState({
-      existingClasses: this.getClassesFromDOM(),
-      processedExistingClasses: this.getTimesFromDOM()
-    })
-  }
-  splitEasyTimes(stringBoi) {
+function splitEasyTimes(stringBoi) {
     var reg = stringBoi.match(/[a-z]+|[^a-z]+/gi)
     // will split into arr of two elems: number time and am/pm
     // goal: get rid of the : in the 1st elem 
@@ -43,23 +18,23 @@ class App extends Component {
         finalTimeForm = splitColonTime[0] + splitColonTime[1]
     
     return finalTimeForm
-  }
+}
 
-  getDays() {
-    let days = window.jQuery.makeArray(window.$("a.uit-clickover-bottom").filter(function () {
+function getDays() {
+    let days = jQuery.makeArray($("a.uit-clickover-bottom").filter(function () {
         return this.innerText.match("M|T|W|R|F")
     }))
     return days
-  }
+}
 
-  getTimes() {
-    let times = window.jQuery.makeArray(window.$("td").filter(function () {
+function getTimes() {
+    let times = jQuery.makeArray($("td").filter(function () {
         return this.innerText.match("^[0-9].*m$")
     }))
     return times
-  }
+}
 
-  getTimesFromDOM() {
+function getTimesFromDOM() {
     // wanna put jsons formatted as: 
     //  ["M", "W"]
     //  gte: 5
@@ -67,16 +42,16 @@ class App extends Component {
     // for each class/dis
     // into one big array
 
-    let days = this.getDays()
-    let times = this.getTimes()
+    let days = getDays()
+    let times = getTimes()
     var finalArr = []
     var i, j
     for (i = 0; i < days.length; i++) {
         let thingy = times[i].innerText.split("-")
         let start = thingy[0]
         let end = thingy[1]
-        let processedStart = this.splitEasyTimes(start)
-        let processedEnd = this.splitEasyTimes(end)
+        let processedStart = splitEasyTimes(start)
+        let processedEnd = splitEasyTimes(end)
 
         var daysArr = []
         var daysStr = days[i].innerText
@@ -90,9 +65,9 @@ class App extends Component {
         finalArr.push(timeSlot)
     }
     return finalArr
-  }
+}
 
-  getClassesFromDOM() {
+function getClassesFromDOM() {
     // want class names, days, and times
     let classTitles = document.querySelectorAll("td.SubjectAreaName_ClassName > p")
     // every even index, including 0, will look like "Class #: Subject"
@@ -106,8 +81,8 @@ class App extends Component {
        |__________________________________________________________|
     */
     let types = document.querySelectorAll("td.section-header > a")
-    let days = this.getDays()
-    let times = this.getTimes()
+    let days = getDays()
+    let times = getTimes()
     var i, sub, num, subNum, type, j=-1;
     var res = []; // [ { sub: , classNum: , days, time, type }, { ... }]
     var subNumArr = []
@@ -133,38 +108,34 @@ class App extends Component {
         res.push(slotJson)
     }
     return res
-  }
-
-  renderExistingClassesData() {
-    return this.state.existingClasses.map((slot, index) => {
-      const { days, times, type, subNum } = slot
-      return (
-        <tr key={subNum}>
-          <td>{days}</td>
-          <td>{times}</td>
-          <td>{type}</td>
-          <td>{subNum}</td>
-        </tr>
-      )
-    })
-  }
-
-  render() {
-    console.log(this.state)
-    return (
-      <div className="App">
-        <form >
-          <input type="text" placeholder="Enter a Subject (ex: COM SCI)" required />
-          <button type="submit">Go!</button>
-        </form>
-        <table id="existing-classes">
-          <tbody>
-            {this.renderExistingClassesData()}
-          </tbody>
-        </table>
-      </div>
-    )
-  }
 }
 
-export default App;
+// listen for msgs from popup
+chrome.runtime.onMessage.addListener((msg, sender, res) => {
+    // validate msg structure
+    if ((msg.from === "popup") && (msg.subject === "processed")) {
+        res(getTimesFromDOM())
+    }
+})
+
+chrome.runtime.onMessage.addListener((msg, sender, res) => {
+    // validate msg structure
+    if ((msg.from === "popup") && (msg.subject === "UI")) {
+        res(getClassesFromDOM())
+    }
+})
+
+var timeout = null
+document.addEventListener("DOMSubtreeModified", 
+    function() {
+        if (timeout) clearTimeout(timeout)
+        timeout = setTimeout(listener, 1000)
+    }, false
+)
+
+function listener() {
+    chrome.runtime.sendMessage(
+        {from: "content", subject: "newClasses", stuff: getClassesFromDOM()},
+        res => console.log("msg sent")
+    )
+}
