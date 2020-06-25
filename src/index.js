@@ -5,7 +5,7 @@ import App from './App';
 import registerServiceWorker from './registerServiceWorker';
 
 // Get the element to prepend our app to. This could be any element on a specific website or even just `document.body`.
-const viewport = document.getElementById('gridDiv');
+const viewport = document.getElementById('ctl00_MainContent_classPlanPanel');
 
 // Create a div to render the <App /> component to.
 const app = document.createElement('div');

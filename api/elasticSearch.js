@@ -1,7 +1,10 @@
-const es = require("elasticsearch");
+const AWS = require('aws-sdk');
+const awsHttpClient = require('http-aws-es');
+const es = require('elasticsearch');
+
 const esClient = new es.Client({
-  host: "localhost:9200",
-  log: "trace",
+  host: 'https://search-classes-dmedmstgnztit6v2b5anubrp3m.us-west-1.es.amazonaws.com/',
+  // log: 'trace'
 });
 
 const createIndex = async function (indexName) {
@@ -145,6 +148,7 @@ exports.indexall = indexall;
 
 const searchDoc = async function (payload) {
   return await esClient.search({
+    size: 100,
     index: payload.index,
     body: payload.body,
   });

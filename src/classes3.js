@@ -29,7 +29,7 @@ async function getDescSlots(link) {
 //gets the class details for the subject (number) items down the list of subjects
 //attempting to loop with this function does not always guarantee maintenance of order
 async function getClassDetailsIter(number) {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({headless: false});
   const page = await browser.newPage();
   await page.goto("https://sa.ucla.edu/ro/public/soc", {
     waitUntil: "networkidle2",
@@ -124,7 +124,6 @@ async function getClassDetailsIter(number) {
               if (title != null) 
                 obj.title = title.innerText;
               if (status != null) {
-                console.log("bp2")
                 obj.status = status.innerText.split("\n")[0].replace(/ .*/, "");
                 obj.spots = status.innerHTML.split("<br>")[1];
               }
@@ -160,14 +159,12 @@ async function getClassDetailsIter(number) {
               if (time != null) 
                 obj.time = time.innerText;
               if (location != null) {
-                console.log("bp3")
                 obj.location = location.innerText.trim().replace("\n", "");
               }
               if (units != null) 
                 obj.units = units.innerText;
               //classes with multiple instructors will return names with a comma in between the names
               if (instructor != null) {
-                console.log("bp4")
                 obj.instructor = instructor.innerText.replace("\n", ", ");
               }
               if (detail != null) 
@@ -181,7 +178,6 @@ async function getClassDetailsIter(number) {
                 let discussions = [];
                 let statusCounter = 0;
                 let daysCounter = 0;
-                console.log("bp5")
                 for (var thingy of secondaryTimeElements) {
                   let discussionObj = {};
                   discussionObj.time = thingy.textContent;
@@ -251,10 +247,10 @@ async function getClassDetailsIter(number) {
     numPages -= 1;
   }
 
-  await browser.close();
-
+//   await browser.close();
   //loop through classInfo processing the times
   for (let i = 0; i < classInfo.length; i++) {
+    console.log(classInfo[i].title)
     if (classInfo[i].time == "" || classInfo[i].time.match(/\d+/) == null) {
       continue;
     }

@@ -5,9 +5,23 @@ const scraping = require("../../src/classes");
 var elastic = require("../elasticsearch");
 
 //request body should have index field and query field
-router.get("/search", function (req, res) {
+/**
+ * @param body format:
+ * {
+ * 		index: "indexName"
+ * 		busySlots:[
+ * 			{
+ * 				day: "M"|"T"|"W"|"R"|"F",
+ * 				gte: 4 digit int time
+ * 				lte: 4 digit int time
+ * 			}
+ * 		]
+ * }
+ */
+router.post("/search", function (req, res) {
   let arrayOfShouldJsons = [];
-  for (var json of req.body) {
+  for (var json of req.body.busySlots) {
+    let day = json.day;
     pushList = [
       {
         bool: {
@@ -15,7 +29,8 @@ router.get("/search", function (req, res) {
             {
               multi_match: {
                 query: true,
-                fields: ["M", "T", "W", "R", "F"],
+                // fields: ['M', 'T', 'W', 'R', 'F'],
+                fields: [day],
               },
             },
             {
@@ -40,13 +55,14 @@ router.get("/search", function (req, res) {
             {
               multi_match: {
                 query: true,
-                fields: [
-                  "discussionA[0].M",
-                  "discussionA[0].T",
-                  "discussionA[0].W",
-                  "discussionA[0].R",
-                  "discussionA[0].F",
-                ],
+                // fields: [
+                // 	'discussionA[0].M',
+                // 	'discussionA[0].T',
+                // 	'discussionA[0].W',
+                // 	'discussionA[0].R',
+                // 	'discussionA[0].F',
+                // ],
+                fields: [`discussionA[0].${day}`],
               },
             },
             {
@@ -71,13 +87,14 @@ router.get("/search", function (req, res) {
             {
               multi_match: {
                 query: true,
-                fields: [
-                  "discussionB[0].M",
-                  "discussionB[0].T",
-                  "discussionB[0].W",
-                  "discussionB[0].R",
-                  "discussionB[0].F",
-                ],
+                // fields: [
+                // 	'discussionB[0].M',
+                // 	'discussionB[0].T',
+                // 	'discussionB[0].W',
+                // 	'discussionB[0].R',
+                // 	'discussionB[0].F',
+                // ],
+                fields: [`discussionB[0].${day}`],
               },
             },
             {
@@ -102,13 +119,14 @@ router.get("/search", function (req, res) {
             {
               multi_match: {
                 query: true,
-                fields: [
-                  "discussionC[0].M",
-                  "discussionC[0].T",
-                  "discussionC[0].W",
-                  "discussionC[0].R",
-                  "discussionC[0].F",
-                ],
+                // fields: [
+                // 	'discussionC[0].M',
+                // 	'discussionC[0].T',
+                // 	'discussionC[0].W',
+                // 	'discussionC[0].R',
+                // 	'discussionC[0].F',
+                // ],
+                fields: [`discussionC[0].${day}`],
               },
             },
             {
@@ -133,13 +151,14 @@ router.get("/search", function (req, res) {
             {
               multi_match: {
                 query: true,
-                fields: [
-                  "discussionD[0].M",
-                  "discussionD[0].T",
-                  "discussionD[0].W",
-                  "discussionD[0].R",
-                  "discussionD[0].F",
-                ],
+                // fields: [
+                // 	'discussionD[0].M',
+                // 	'discussionD[0].T',
+                // 	'discussionD[0].W',
+                // 	'discussionD[0].R',
+                // 	'discussionD[0].F',
+                // ],
+                fields: [`discussionD[0].${day}`],
               },
             },
             {
@@ -164,13 +183,14 @@ router.get("/search", function (req, res) {
             {
               multi_match: {
                 query: true,
-                fields: [
-                  "discussionE[0].M",
-                  "discussionE[0].T",
-                  "discussionE[0].W",
-                  "discussionE[0].R",
-                  "discussionE[0].F",
-                ],
+                // fields: [
+                // 	'discussionE[0].M',
+                // 	'discussionE[0].T',
+                // 	'discussionE[0].W',
+                // 	'discussionE[0].R',
+                // 	'discussionE[0].F',
+                // ],
+                fields: [`discussionE[0].${day}`],
               },
             },
             {
@@ -195,13 +215,14 @@ router.get("/search", function (req, res) {
             {
               multi_match: {
                 query: true,
-                fields: [
-                  "discussionF[0].M",
-                  "discussionF[0].T",
-                  "discussionF[0].W",
-                  "discussionF[0].R",
-                  "discussionF[0].F",
-                ],
+                // fields: [
+                // 	'discussionF[0].M',
+                // 	'discussionF[0].T',
+                // 	'discussionF[0].W',
+                // 	'discussionF[0].R',
+                // 	'discussionF[0].F',
+                // ],
+                fields: [`discussionF[0].${day}`],
               },
             },
             {
@@ -226,13 +247,14 @@ router.get("/search", function (req, res) {
             {
               multi_match: {
                 query: true,
-                fields: [
-                  "discussionG[0].M",
-                  "discussionG[0].T",
-                  "discussionG[0].W",
-                  "discussionG[0].R",
-                  "discussionG[0].F",
-                ],
+                // fields: [
+                // 	'discussionG[0].M',
+                // 	'discussionG[0].T',
+                // 	'discussionG[0].W',
+                // 	'discussionG[0].R',
+                // 	'discussionG[0].F',
+                // ],
+                fields: [`discussionG[0].${day}`],
               },
             },
             {
@@ -257,13 +279,14 @@ router.get("/search", function (req, res) {
             {
               multi_match: {
                 query: true,
-                fields: [
-                  "discussionH[0].M",
-                  "discussionH[0].T",
-                  "discussionH[0].W",
-                  "discussionH[0].R",
-                  "discussionH[0].F",
-                ],
+                // fields: [
+                // 	'discussionH[0].M',
+                // 	'discussionH[0].T',
+                // 	'discussionH[0].W',
+                // 	'discussionH[0].R',
+                // 	'discussionH[0].F',
+                // ],
+                fields: [`discussionH[0].${day}`],
               },
             },
             {
@@ -288,13 +311,14 @@ router.get("/search", function (req, res) {
             {
               multi_match: {
                 query: true,
-                fields: [
-                  "discussionI[0].M",
-                  "discussionI[0].T",
-                  "discussionI[0].W",
-                  "discussionI[0].R",
-                  "discussionI[0].F",
-                ],
+                // fields: [
+                // 	'discussionI[0].M',
+                // 	'discussionI[0].T',
+                // 	'discussionI[0].W',
+                // 	'discussionI[0].R',
+                // 	'discussionI[0].F',
+                // ],
+                fields: [`discussionI[0].${day}`],
               },
             },
             {
@@ -319,13 +343,14 @@ router.get("/search", function (req, res) {
             {
               multi_match: {
                 query: true,
-                fields: [
-                  "discussionJ[0].M",
-                  "discussionJ[0].T",
-                  "discussionJ[0].W",
-                  "discussionJ[0].R",
-                  "discussionJ[0].F",
-                ],
+                // fields: [
+                // 	'discussionJ[0].M',
+                // 	'discussionJ[0].T',
+                // 	'discussionJ[0].W',
+                // 	'discussionJ[0].R',
+                // 	'discussionJ[0].F',
+                // ],
+                fields: [`discussionJ[0].${day}`],
               },
             },
             {
@@ -349,10 +374,17 @@ router.get("/search", function (req, res) {
   }
   elastic
     .searchDoc({
-      index: "planner",
+      index: req.body.index,
       body: {
         query: {
           bool: {
+            must: [
+              {
+                match: {
+                  subjectCode: "COM SCI",
+                },
+              },
+            ],
             must_not: [
               {
                 bool: {
@@ -405,15 +437,18 @@ router.post("/populateClassesDB/:index", async function (req, res) {
   await new Promise((resolve) => setTimeout(resolve, 2000));
 
   const forLoop = async () => {
-    var TOTAL_SUBJECTS = 2;
+    var TOTAL_SUBJECTS = 169;
     var bigJson = [];
     for (let i = 0; i < TOTAL_SUBJECTS; i++) {
       await scraping
         .getClassDetailsIter(i)
         .then((results) => {
           bigJson = [...bigJson, ...results];
+          console.log("done");
         })
         .catch(console.error);
+      // if (bigJson.length!=0)
+      //   console.log(bigJson[i].subjectName)
     }
     var bulk = [];
     var makebulk = function (list, index, callback) {
