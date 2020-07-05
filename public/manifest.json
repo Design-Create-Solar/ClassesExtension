@@ -8,11 +8,14 @@
     "48": "logo-small.png",
     "128": "logo-small.png"
   },
-  "content_scripts": [
-    {
-      "matches": ["https://be.my.ucla.edu/ClassPlanner/ClassPlan.aspx*"],
-      "css": ["/static/css/main.css"],
-      "js": ["/static/js/main.js"]
-    }
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+  "permissions": [
+    "webRequest",
+    "webNavigation",
+    "tabs",
+    "https://be.my.ucla.edu/ClassPlanner/ClassPlan.aspx*"
   ]
 }

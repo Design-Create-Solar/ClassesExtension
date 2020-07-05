@@ -22,6 +22,7 @@ class App extends Component {
       newClassBois: [],
     };
     this.getClassesFromDB = this.getClassesFromDB.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentDidMount() {
@@ -30,6 +31,7 @@ class App extends Component {
       processedExistingClasses: this.getTimesFromDOM(),
     });
   }
+
   splitEasyTimes(stringBoi) {
     var reg = stringBoi.match(/[a-z]+|[^a-z]+/gi);
     // will split into arr of two elems: number time and am/pm
@@ -188,40 +190,29 @@ class App extends Component {
       .catch(console.trace);
   }
 
+  handleSubmit(event) {
+    console.log("came in handleSubmit");
+    event.preventDefault();
+  }
+
   render() {
-    console.log(this.state);
     return (
       <div className="App" width="100%" style={{ border: 0, margin: 0 }}>
-        <div
-          // id="classNewSearchTitle"
-          // class="classPlanner_SectionTitle"
-          style={{ alignItems: "left" }}
-        >
-          <a
-          // onclick="shrink('panelNewSearch');"
-          // id="ctl00_MainContent_toggleSearch"
-          // class="planSectionToggle"
-          // href="javascript:__doPostBack('ctl00$MainContent$toggleSearch','')"
-          >
-            {/* <i class="icon-minus-sign"></i>  */}
-            Search for Class and Add to Cool Search
-          </a>
+        <div style={{ alignItems: "left" }}>
+          <a>Search for Class and Add to Cool Search</a>
         </div>
 
-        <div
-        // id="panelNewSearch"
-        >
-          <form>
+        <div>
+          <form id="extension-form" onSubmit={this.handleSubmit}>
             <input
               type="text"
               placeholder="Enter a Subject (ex: COM SCI)"
-              // class="ClassSearchBox tier0 CSAutoComplete csac1 csac2 ui-autocomplete-input"
               style={{ width: "96%" }}
               required
             />
             <button
               type="button"
-              // type='submit'
+              // type="submit"
               onClick={this.getClassesFromDB}
             >
               Go!

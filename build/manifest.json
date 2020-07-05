@@ -1,12 +1,21 @@
 {
   "manifest_version": 2,
-  "name": "React Content Script",
-  "version": "0.1",
-  "content_scripts": [
-    {
-      "matches": ["https://be.my.ucla.edu/ClassPlanner/ClassPlan.aspx"],
-      "css": ["/static/css/main.css"],
-      "js": ["/static/js/main.js"]
-    }
+  "name": "Classes Extension",
+  "description": "For querying class timeslots from UCLA's Schedule of Classes page.",
+  "version": "0.0.2",
+  "icons": {
+    "16": "logo-small.png",
+    "48": "logo-small.png",
+    "128": "logo-small.png"
+  },
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+  "permissions": [
+    "webRequest",
+    "webNavigation",
+    "tabs",
+    "https://be.my.ucla.edu/ClassPlanner/ClassPlan.aspx*"
   ]
 }
