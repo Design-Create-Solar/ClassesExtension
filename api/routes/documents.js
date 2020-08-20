@@ -19,6 +19,7 @@ var elastic = require("../elasticsearch");
  * }
  */
 router.post("/search", function (req, res) {
+  console.log("req.body.searchString is: ", req.body.searchString);
   let arrayOfShouldJsons = [];
   for (var json of req.body.busySlots) {
     let day = json.day;
@@ -381,7 +382,7 @@ router.post("/search", function (req, res) {
             must: [
               {
                 match: {
-                  subjectCode: "COM SCI",
+                  subjectName: req.body.searchString,
                 },
               },
             ],
@@ -398,7 +399,8 @@ router.post("/search", function (req, res) {
     })
     .then(function (result) {
       res.json(result);
-    });
+    })
+    .catch((err) => console.log(err));
 });
 
 // router.get("/searchOpen", function (req, res) {

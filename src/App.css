@@ -1,26 +1,16 @@
-.App {
-  text-align: center;
-  margin: 70px auto;
-  width: 50%;
+.myHeader > th {
+  border-bottom: 1px solid #ddd;
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
+.myRows > td {
+  border-bottom: 1px solid #ddd;
+  font-size: 15;
 }
 
-.App-header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
-  color: white;
+.myRows:hover {
+  background-color: #f5f5f5;
 }
 
-.App-intro {
-  font-size: large;
-}
-
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.myRows:nth-child(even) {
+  background-color: #f2f2f2;
 }
