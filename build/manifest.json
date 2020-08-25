@@ -1,12 +1,12 @@
 {
   "manifest_version": 2,
-  "name": "Classes Extension",
+  "name": "ClassHelper",
   "description": "For querying class timeslots from UCLA's Schedule of Classes page.",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "icons": {
-    "16": "logo-small.png",
-    "48": "logo-small.png",
-    "128": "logo-small.png"
+    "16": "logo.png",
+    "48": "logo.png",
+    "128": "logo.png"
   },
   "background": {
     "scripts": ["background.js"],
@@ -20,7 +20,7 @@
   ],
   "permissions": [
     "webRequest",
-    "webNavigation",
+    "storage",
     "tabs",
     "https://be.my.ucla.edu/ClassPlanner/ClassPlan.aspx*"
   ]
