@@ -1,3 +1,4 @@
+/* global chrome */
 import React, { Component } from "react";
 import "./App.css";
 import $ from "jquery";
@@ -22,6 +23,7 @@ class App extends Component {
       newClassBois: [],
       searchString: "",
       resultsSize: null,
+      xml: false,
     };
     this.getClassesFromDB = this.getClassesFromDB.bind(this);
     this.renderResults = this.renderResults.bind(this);
@@ -34,6 +36,16 @@ class App extends Component {
       existingClasses: this.getClassesFromDOM(),
       processedExistingClasses: this.getTimesFromDOM(),
     });
+
+    chrome.storage.local.get("newClassBois", (data) =>
+      this.setState({ newClassBois: data.newClassBois })
+    );
+    chrome.storage.local.get("searchString", (data) =>
+      this.setState({ searchString: data.searchString })
+    );
+    chrome.storage.local.get("resultsSize", (data) =>
+      this.setState({ resultsSize: data.resultsSize })
+    );
   }
 
   splitEasyTimes(stringBoi) {
@@ -157,7 +169,7 @@ class App extends Component {
 
   getRows() {
     return this.state.newClassBois.map((slot, index) => {
-      const { status, location, instructor, title } = slot;
+      const { status, location, instructor, title, subjectCode } = slot;
       return (
         <tr className="myRows" key={index}>
           <td
@@ -172,8 +184,17 @@ class App extends Component {
           >
             {location}
           </td>
-          <td style={{ paddingTop: 10, paddingBottom: 10 }} key="instructor">
+          <td
+            style={{ paddingTop: 10, paddingBottom: 10, textAlign: "center" }}
+            key="instructor"
+          >
             {instructor}
+          </td>
+          <td
+            style={{ paddingTop: 10, paddingBottom: 10, textAlign: "center" }}
+            key="subjectCode"
+          >
+            {subjectCode}
           </td>
           <td style={{ paddingTop: 10, paddingBottom: 10 }} key="title">
             {title}
@@ -255,6 +276,20 @@ class App extends Component {
             paddingTop: 20,
             paddingBottom: 20,
             textAlign: "center",
+            paddingLeft: 10,
+            paddingRight: 10,
+          }}
+          key={"subjectCode"}
+        >
+          Subject
+        </th>
+        <th
+          style={{
+            backgroundColor: "#4560ab",
+            color: "white",
+            paddingTop: 20,
+            paddingBottom: 20,
+            textAlign: "center",
             maxWidth: "10em",
           }}
           key={"title"}
@@ -271,7 +306,6 @@ class App extends Component {
 
   getClassesFromDB(e) {
     e.preventDefault(); // to prevent that automatic hard refresh after submit
-    // console.log("submitted searchString is: ", this.state.searchString);
     let arr = [];
     this.state.processedExistingClasses.forEach((el) => {
       el.days.forEach((day) =>
@@ -290,11 +324,17 @@ class App extends Component {
         },
       })
     )
-      .then((res) =>
-        this.setState({
-          newClassBois: res.data.hits.hits.map((el) => el._source),
-          resultsSize: res.data.hits.total.value,
-        })
+      .then(
+        function (res) {
+          this.setState({
+            newClassBois: res.data.hits.hits.map((el) => el._source),
+            resultsSize: res.data.hits.total.value,
+          });
+          let { newClassBois, resultsSize, searchString } = this.state;
+          chrome.storage.local.set({ "newClassBois": newClassBois });
+          chrome.storage.local.set({ "resultsSize": resultsSize });
+          chrome.storage.local.set({ "searchString": searchString });
+        }.bind(this)
       )
       .catch(console.trace);
   }
